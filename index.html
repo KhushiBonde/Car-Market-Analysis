@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Car Market Analysis Dashboard | Car Dekho</title>
+<meta name="description" content="Professional used-car market analysis dashboard — pricing patterns, depreciation, fuel, transmission analysis and actionable market insights.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root{--bg:#0d1117;--sf:#161b22;--sf2:#1c2130;--bd:#21262d;--bd2:#30363d;--ac:#2563eb;--acg:rgba(37,99,235,.15);--gr:#10b981;--grb:rgba(16,185,129,.1);--am:#f59e0b;--amb:rgba(245,158,11,.1);--re:#ef4444;--reb:rgba(239,68,68,.1);--pu:#8b5cf6;--cy:#06b6d4;--tx:#f0f6fc;--tm:#8b949e;--td:#484f58;--sw:260px;--r:10px;--rs:6px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;display:flex;font-size:14px;line-height:1.5;overflow-x:hidden}
+/* SIDEBAR */
+#sidebar{width:var(--sw);min-height:100vh;background:var(--sf);border-right:1px solid var(--bd);display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:100;overflow-y:auto}
+.sb{padding:20px 18px 16px;border-bottom:1px solid var(--bd)}
+.sbi{width:36px;height:36px;background:var(--ac);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:10px}
+.sb h2{font-size:13px;font-weight:700;letter-spacing:.02em;line-height:1.3}
+.sb p{font-size:11px;color:var(--tm);margin-top:2px}
+.fs{padding:14px 18px;border-bottom:1px solid var(--bd)}
+.fl{font-size:10px;font-weight:700;color:var(--tm);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.fl .dot{width:6px;height:6px;border-radius:50%;background:var(--ac)}
+.cg{display:flex;flex-direction:column;gap:5px}
+.ci{display:flex;align-items:center;gap:8px;cursor:pointer;padding:4px 8px;border-radius:var(--rs);transition:background .15s;font-size:12px}
+.ci:hover{background:rgba(255,255,255,.04)}
+.ci input[type=checkbox]{width:14px;height:14px;accent-color:var(--ac);cursor:pointer;flex-shrink:0}
+.rg{display:flex;flex-direction:column;gap:8px}
+.rr{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--tm)}
+.rr input[type=range]{flex:1;accent-color:var(--ac);height:4px}
+.rv{min-width:32px;text-align:right;color:var(--tx);font-weight:600;font-size:11px}
+#reset-btn{margin:12px 18px 16px;width:calc(100% - 36px);padding:9px 0;background:var(--sf2);border:1px solid var(--bd2);color:var(--tx);border-radius:var(--rs);font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:6px}
+#reset-btn:hover{background:var(--ac);border-color:var(--ac);color:#fff}
+.fc{background:var(--ac);color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:20px;margin-left:auto}
+/* MAIN */
+#main{margin-left:var(--sw);flex:1;display:flex;flex-direction:column;min-height:100vh}
+#topbar{background:var(--sf);border-bottom:1px solid var(--bd);padding:0 28px;display:flex;align-items:center;position:sticky;top:0;z-index:50;overflow-x:auto}
+.tb{padding:15px 16px;background:none;border:none;color:var(--tm);font-family:inherit;font-size:13px;font-weight:500;cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap;display:flex;align-items:center;gap:6px}
+.tb:hover{color:var(--tx)}
+.tb.active{color:var(--ac);border-bottom-color:var(--ac);font-weight:600}
+.tr{margin-left:auto;display:flex;align-items:center;gap:10px;padding-left:20px;flex-shrink:0}
+#fstat{font-size:11px;color:var(--tm);white-space:nowrap}
+#fstat span{color:var(--ac);font-weight:600}
+#content{flex:1;padding:24px 28px}
+.page{display:none}.page.active{display:block}
+.st{font-size:18px;font-weight:700;margin-bottom:4px}
+.ss{font-size:13px;color:var(--tm);margin-bottom:20px}
+/* KPI */
+.kg{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px;margin-bottom:24px}
+.kc{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:16px 18px;transition:border-color .2s,transform .2s;position:relative;overflow:hidden}
+.kc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--ac)}
+.kc.g::before{background:var(--gr)}.kc.a::before{background:var(--am)}.kc.p::before{background:var(--pu)}.kc.c::before{background:var(--cy)}
+.kc:hover{border-color:var(--bd2);transform:translateY(-2px)}
+.ki{font-size:20px;margin-bottom:8px;display:block}
+.kl{font-size:10px;font-weight:600;color:var(--tm);letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px}
+.kv{font-size:22px;font-weight:800;letter-spacing:-.02em;line-height:1.1}
+.ks{font-size:11px;color:var(--tm);margin-top:4px}
+/* CHART GRID */
+.cgg{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;margin-bottom:24px}
+.cc{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:18px;box-shadow:0 4px 24px rgba(0,0,0,.4)}
+.cc.full{grid-column:1/-1}
+.ct{font-size:13px;font-weight:700;margin-bottom:2px}.csub{font-size:11px;color:var(--tm);margin-bottom:14px}
+.cw{position:relative;width:100%}
+/* INSIGHT BOX */
+#ib{background:var(--sf);border:1px solid var(--bd);border-left:3px solid var(--ac);border-radius:var(--r);padding:18px 20px;margin-bottom:24px}
+.ih{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;margin-bottom:12px}
+.ii{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid var(--bd);font-size:12px;color:var(--tm)}
+.ii:last-child{border-bottom:none}
+.idot{width:6px;height:6px;border-radius:50%;background:var(--ac);margin-top:5px;flex-shrink:0}
+.ii strong{color:var(--tx)}
+/* TABLES */
+.dt{width:100%;border-collapse:collapse;font-size:12px}
+.dt th{background:var(--sf2);color:var(--tm);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:10px 14px;text-align:left;border-bottom:1px solid var(--bd)}
+.dt td{padding:9px 14px;border-bottom:1px solid var(--bd)}
+.dt tr:last-child td{border-bottom:none}
+.dt tr:hover td{background:rgba(255,255,255,.02)}
+.badge{display:inline-flex;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700}
+.bg{background:var(--grb);color:var(--gr)}.ba{background:var(--amb);color:var(--am)}.bb{background:var(--acg);color:var(--ac)}
+/* CAR SEARCH */
+#cs-wrap{margin-bottom:18px}
+#car-search{width:100%;background:var(--sf);border:1px solid var(--bd);border-radius:var(--rs);color:var(--tx);font-family:inherit;font-size:13px;padding:10px 14px;outline:none;transition:border-color .2s}
+#car-search:focus{border-color:var(--ac)}#car-search::placeholder{color:var(--td)}
+#car-detail{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:20px;margin-bottom:18px;display:none}
+.cdg{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px;margin-top:14px}
+.cdi{background:var(--sf2);border-radius:var(--rs);padding:10px 12px}
+.cdi .dl{font-size:10px;color:var(--tm);font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+.cdi .dv{font-size:14px;font-weight:700;margin-top:2px}
+/* DEPR KPI */
+.dkg{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;margin-bottom:24px}
+.dkc{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:16px 18px}
+.dkl{font-size:11px;font-weight:600;color:var(--tm);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+.dkv{font-size:24px;font-weight:800;color:var(--re);letter-spacing:-.02em}
+.dks{font-size:11px;color:var(--tm);margin-top:3px}
+/* EMPTY */
+.es{display:flex;flex-direction:column;align-items:center;padding:60px 20px;color:var(--tm);text-align:center}
+.es .eic{font-size:40px;margin-bottom:12px}
+.es h3{font-size:16px;font-weight:600;margin-bottom:6px;color:var(--tx)}
+/* SCROLL */
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:var(--sf)}
+::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:3px}
+@media(max-width:1100px){.cgg{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav id="sidebar">
+<div class="sb">
+<div class="sbi">🚗</div>
+<h2>Car Market Analysis</h2>
+<p>Car Dekho · 324 Records · 9 Features</p>
+</div>
+<div class="fs">
+<div class="fl"><span class="dot"></span>Fuel Type<span id="fc1" class="fc">3</span></div>
+<div class="cg" id="ff"><label class="ci"><input type="checkbox" value="CNG" checked>CNG</label>
+<label class="ci"><input type="checkbox" value="Diesel" checked>Diesel</label>
+<label class="ci"><input type="checkbox" value="Petrol" checked>Petrol</label></div>
+</div>
+<div class="fs">
+<div class="fl"><span class="dot"></span>Seller Type<span id="fc2" class="fc">2</span></div>
+<div class="cg" id="sf"><label class="ci"><input type="checkbox" value="Dealer" checked>Dealer</label>
+<label class="ci"><input type="checkbox" value="Individual" checked>Individual</label></div>
+</div>
+<div class="fs">
+<div class="fl"><span class="dot"></span>Transmission<span id="fc3" class="fc">2</span></div>
+<div class="cg" id="tf"><label class="ci"><input type="checkbox" value="Automatic" checked>Automatic</label>
+<label class="ci"><input type="checkbox" value="Manual" checked>Manual</label></div>
+</div>
+<div class="fs">
+<div class="fl"><span class="dot"></span>Manufacturing Year</div>
+<div class="rg">
+<div class="rr"><span>From</span><input type="range" id="ym" min="2003" max="2018" value="2003"><span class="rv" id="ymv">2003</span></div>
+<div class="rr"><span>To</span><input type="range" id="yx" min="2003" max="2018" value="2018"><span class="rv" id="yxv">2018</span></div>
+</div>
+</div>
+<div class="fs">
+<div class="fl"><span class="dot"></span>Previous Owners<span id="fc4" class="fc">4</span></div>
+<div class="cg" id="of"><label class="ci"><input type="checkbox" value="0" checked>0 — First Owner</label>
+<label class="ci"><input type="checkbox" value="1" checked>1 — Second Owner</label>
+<label class="ci"><input type="checkbox" value="2" checked>2 — Third Owner</label>
+<label class="ci"><input type="checkbox" value="3" checked>3 — Fourth+ Owner</label></div>
+</div>
+<button id="reset-btn">↺&nbsp; Reset All Filters</button>
+</nav>
+
+<!-- MAIN -->
+<div id="main">
+<div id="topbar">
+<button class="tb active" data-tab="overview">📊 Overview</button>
+<button class="tb" data-tab="price">💰 Price Analysis</button>
+<button class="tb" data-tab="trends">📈 Market Trends</button>
+<button class="tb" data-tab="depreciation">📉 Depreciation</button>
+<button class="tb" data-tab="insights">🏆 Car Insights</button>
+<button class="tb" data-tab="quality">🔍 Data Quality</button>
+<div class="tr"><div id="fstat">Showing <span id="rc">—</span> of 324 records</div></div>
+</div>
+<div id="content">
+
+<!-- PAGE: OVERVIEW -->
+<div class="page active" id="page-overview">
+<div class="st">Market Overview</div>
+<div class="ss">Key performance indicators and market composition — Car Dekho Used Car Dataset</div>
+<div class="kg">
+<div class="kc"><span class="ki">🚗</span><div class="kl">Total Cars</div><div class="kv" id="k1">—</div><div class="ks">Filtered listings</div></div>
+<div class="kc g"><span class="ki">💵</span><div class="kl">Avg Selling Price</div><div class="kv" id="k2">—</div><div class="ks">Mean resale value</div></div>
+<div class="kc a"><span class="ki">⬇️</span><div class="kl">Min Selling Price</div><div class="kv" id="k3">—</div></div>
+<div class="kc p"><span class="ki">⬆️</span><div class="kl">Max Selling Price</div><div class="kv" id="k4">—</div></div>
+<div class="kc c"><span class="ki">🏷️</span><div class="kl">Avg Present Price</div><div class="kv" id="k5">—</div></div>
+<div class="kc"><span class="ki">🛣️</span><div class="kl">Avg Kms Driven</div><div class="kv" id="k6">—</div></div>
+<div class="kc"><span class="ki">📅</span><div class="kl">Avg Car Age</div><div class="kv" id="k7">—</div><div class="ks">Ref year: 2020</div></div>
+</div>
+<div id="ib"><div class="ih">💡 Key Market Insights <small style="font-weight:400;color:var(--tm);font-size:11px;margin-left:6px">(derived from filtered data)</small></div><div id="il"></div></div>
+<div class="cgg" style="grid-template-columns:1.5fr 1fr 1fr 1fr">
+<div class="cc"><div class="ct">Selling Price Distribution</div><div class="csub">Histogram of resale prices (₹ Lakhs)</div><div class="cw" style="height:220px"><canvas id="c-dist"></canvas></div></div>
+<div class="cc"><div class="ct">Fuel Type Mix</div><div class="csub">Market share by fuel</div><div class="cw" style="height:220px"><canvas id="c-fd"></canvas></div></div>
+<div class="cc"><div class="ct">Seller Type Mix</div><div class="csub">Dealer vs Individual</div><div class="cw" style="height:220px"><canvas id="c-sd"></canvas></div></div>
+<div class="cc"><div class="ct">Transmission Mix</div><div class="csub">Manual vs Automatic</div><div class="cw" style="height:220px"><canvas id="c-td"></canvas></div></div>
+</div>
+</div>
+
+<!-- PAGE: PRICE -->
+<div class="page" id="page-price">
+<div class="st">Price Analysis</div>
+<div class="ss">What factors drive selling price? Scatter plots coloured by fuel type + categorical averages</div>
+<div class="cgg">
+<div class="cc"><div class="ct">Selling Price vs Present Price</div><div class="csub">Strongest numerical predictor of resale value</div><div class="cw" style="height:280px"><canvas id="c-pp"></canvas></div></div>
+<div class="cc"><div class="ct">Selling Price vs Car Age</div><div class="csub">How age erodes resale value (Age = 2020 − Year)</div><div class="cw" style="height:280px"><canvas id="c-sage"></canvas></div></div>
+<div class="cc"><div class="ct">Selling Price vs Kilometres Driven</div><div class="csub">Does higher mileage reduce resale price?</div><div class="cw" style="height:280px"><canvas id="c-skms"></canvas></div></div>
+<div class="cc"><div class="ct">Average Price by Fuel Type</div><div class="csub">Which fuel commands the highest resale value?</div><div class="cw" style="height:280px"><canvas id="c-af"></canvas></div></div>
+<div class="cc"><div class="ct">Average Price by Transmission</div><div class="csub">Manual vs Automatic resale comparison</div><div class="cw" style="height:280px"><canvas id="c-at"></canvas></div></div>
+<div class="cc"><div class="ct">Average Price by Seller Type</div><div class="csub">Dealer vs Individual pricing difference</div><div class="cw" style="height:280px"><canvas id="c-as"></canvas></div></div>
+</div>
+</div>
+
+<!-- PAGE: TRENDS -->
+<div class="page" id="page-trends">
+<div class="st">Market Trends</div>
+<div class="ss">Year-on-year patterns, age groups, mileage bands, previous owners and correlation analysis</div>
+<div class="cgg">
+<div class="cc"><div class="ct">Cars by Manufacturing Year</div><div class="csub">Volume of listings per production year</div><div class="cw" style="height:240px"><canvas id="c-yc"></canvas></div></div>
+<div class="cc"><div class="ct">Average Selling Price by Year</div><div class="csub">Newer models command higher resale prices</div><div class="cw" style="height:240px"><canvas id="c-yp"></canvas></div></div>
+<div class="cc"><div class="ct">Average Price by Age Group</div><div class="csub">Resale value across car age brackets</div><div class="cw" style="height:240px"><canvas id="c-agrp"></canvas></div></div>
+<div class="cc"><div class="ct">Average Price by Mileage Group</div><div class="csub">Does higher mileage always mean lower price?</div><div class="cw" style="height:240px"><canvas id="c-mgrp"></canvas></div></div>
+<div class="cc"><div class="ct">Cars by Previous Owners</div><div class="csub">How many listings per ownership history?</div><div class="cw" style="height:240px"><canvas id="c-oc"></canvas></div></div>
+<div class="cc"><div class="ct">Average Selling Price by Owners</div><div class="csub">Impact of ownership history on resale value</div><div class="cw" style="height:240px"><canvas id="c-op"></canvas></div></div>
+</div>
+<div class="cc" style="margin-bottom:24px">
+<div class="ct">Correlation Matrix — Numerical Features</div>
+<div class="csub">Pearson correlation · Blue = positive, Red = negative · Stronger = closer to ±1</div>
+<div id="corr" style="margin-top:14px;overflow-x:auto"></div>
+</div>
+</div>
+
+<!-- PAGE: DEPRECIATION -->
+<div class="page" id="page-depreciation">
+<div class="st">Depreciation Analysis</div>
+<div class="ss">Depreciation = Present Price − Selling Price &nbsp;·&nbsp; Depreciation % = (Depreciation ÷ Present Price) × 100</div>
+<div class="dkg" id="dkg"></div>
+<div class="cgg">
+<div class="cc"><div class="ct">Depreciation % vs Car Age</div><div class="csub">Older cars may lose more value</div><div class="cw" style="height:260px"><canvas id="c-da"></canvas></div></div>
+<div class="cc"><div class="ct">Depreciation % vs Kilometres Driven</div><div class="csub">Mileage effect on value loss</div><div class="cw" style="height:260px"><canvas id="c-dkm"></canvas></div></div>
+<div class="cc"><div class="ct">Avg Depreciation % by Fuel Type</div><div class="csub">Which fuel retains value better?</div><div class="cw" style="height:260px"><canvas id="c-df"></canvas></div></div>
+<div class="cc"><div class="ct">Avg Depreciation % by Transmission</div><div class="csub">Automatic vs Manual value retention</div><div class="cw" style="height:260px"><canvas id="c-dtr"></canvas></div></div>
+<div class="cc"><div class="ct">Avg Depreciation % by Seller Type</div><div class="csub">Dealer vs Individual value loss</div><div class="cw" style="height:260px"><canvas id="c-dsl"></canvas></div></div>
+<div class="cc"><div class="ct">Avg Depreciation % by Age Group</div><div class="csub">Value retention across age brackets</div><div class="cw" style="height:260px"><canvas id="c-dag"></canvas></div></div>
+</div>
+</div>
+
+<!-- PAGE: CAR INSIGHTS -->
+<div class="page" id="page-insights">
+<div class="st">Car Insights</div>
+<div class="ss">Top cars by popularity, price and value retention · Search and compare individual models</div>
+<div id="cs-wrap"><input id="car-search" type="text" placeholder="🔍  Search a car model (e.g. city, swift, fortuner, verna, corolla)..."></div>
+<div id="car-detail"></div>
+<div class="cgg">
+<div class="cc"><div class="ct">Top 10 Most Listed Cars</div><div class="csub">Most frequently appearing models</div><div class="cw" style="height:320px"><canvas id="c-tc"></canvas></div></div>
+<div class="cc"><div class="ct">Top 10 by Average Selling Price</div><div class="csub">Highest-value models (min 2 listings)</div><div class="cw" style="height:320px"><canvas id="c-tp"></canvas></div></div>
+<div class="cc full"><div class="ct">Top 10 — Best Resale Value Retention</div><div class="csub">Lowest avg depreciation % (min 2 listings) — these hold their value best</div><div class="cw" style="height:280px"><canvas id="c-tret"></canvas></div></div>
+</div>
+</div>
+
+<!-- PAGE: DATA QUALITY -->
+<div class="page" id="page-quality">
+<div class="st">Data Quality Report</div>
+<div class="ss">Dataset integrity, column types, missing values, outlier detection and summary statistics</div>
+<div class="kg" style="grid-template-columns:repeat(auto-fill,minmax(150px,1fr))">
+<div class="kc g"><span class="ki">📋</span><div class="kl">Total Rows</div><div class="kv">324</div></div>
+<div class="kc g"><span class="ki">📐</span><div class="kl">Columns</div><div class="kv">9</div></div>
+<div class="kc g"><span class="ki">✅</span><div class="kl">Missing Values</div><div class="kv">0</div><div class="ks">Clean dataset</div></div>
+<div class="kc g"><span class="ki">🔄</span><div class="kl">Duplicates</div><div class="kv">2</div><div class="ks">Near-identical rows</div></div>
+<div class="kc"><span class="ki">🏷️</span><div class="kl">Unique Cars</div><div class="kv">32</div></div>
+<div class="kc"><span class="ki">📅</span><div class="kl">Year Range</div><div class="kv">2003–18</div></div>
+</div>
+<div class="cgg">
+<div class="cc">
+<div class="ct">Column Details &amp; Data Types</div><div class="csub">Types, non-null counts and unique values per column</div>
+<div style="overflow-x:auto;margin-top:8px">
+<table class="dt"><thead><tr><th>#</th><th>Column</th><th>Type</th><th>Non-Null</th><th>Unique</th><th>Missing</th></tr></thead>
+<tbody><tr><td>0</td><td>Car_Name</td><td><span class="badge bb">string</span></td><td>324</td><td>98</td><td><span class="badge bg">0</span></td></tr>
+<tr><td>1</td><td>Year</td><td><span class="badge ba">int64</span></td><td>324</td><td>15</td><td><span class="badge bg">0</span></td></tr>
+<tr><td>2</td><td>Selling_Price</td><td><span class="badge ba">float64</span></td><td>324</td><td>120</td><td><span class="badge bg">0</span></td></tr>
+<tr><td>3</td><td>Present_Price</td><td><span class="badge ba">float64</span></td><td>324</td><td>50</td><td><span class="badge bg">0</span></td></tr>
+<tr><td>4</td><td>Kms_Driven</td><td><span class="badge ba">int64</span></td><td>324</td><td>94</td><td><span class="badge bg">0</span></td></tr>
+<tr><td>5</td><td>Fuel_Type</td><td><span class="badge bb">category</span></td><td>324</td><td>3</td><td><span class="badge bg">0</span></td></tr>
+<tr><td>6</td><td>Seller_Type</td><td><span class="badge bb">category</span></td><td>324</td><td>2</td><td><span class="badge bg">0</span></td></tr>
+<tr><td>7</td><td>Transmission</td><td><span class="badge bb">category</span></td><td>324</td><td>2</td><td><span class="badge bg">0</span></td></tr>
+<tr><td>8</td><td>Owner</td><td><span class="badge ba">int64</span></td><td>324</td><td>4</td><td><span class="badge bg">0</span></td></tr></tbody></table>
+</div>
+</div>
+<div class="cc">
+<div class="ct">Outlier Detection — Selling Price (IQR)</div><div class="csub">Values beyond Q1 − 1.5×IQR or Q3 + 1.5×IQR</div>
+<div id="outlier-sec" style="margin-top:10px"></div>
+</div>
+<div class="cc full">
+<div class="ct">Numerical Summary Statistics — df.describe()</div><div class="csub">Count, mean, std, min, Q1, median, Q3, max</div>
+<div style="overflow-x:auto;margin-top:10px"><table class="dt" id="sum-tbl"></table></div>
+</div>
+</div>
+</div>
+
+</div></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// DATA — embedded from car_dekho_data.csv (324 records)
+// [name, year, sp, pp, km, fuel, seller, trans, owner]
+// ═══════════════════════════════════════════════════════════════
+const RAW=[["ritz", 2014, 3.35, 5.59, 27000, "Petrol", "Dealer", "Manual", 0], ["sx4", 2013, 4.75, 9.54, 43000, "Diesel", "Dealer", "Manual", 0], ["ciaz", 2017, 7.25, 9.85, 6900, "Petrol", "Dealer", "Manual", 0], ["wagon r", 2011, 2.85, 4.15, 5200, "Petrol", "Dealer", "Manual", 0], ["swift", 2014, 4.6, 6.87, 42450, "Diesel", "Dealer", "Manual", 0], ["vitara brezza", 2018, 9.9, 9.83, 2071, "Petrol", "Dealer", "Manual", 0], ["ciaz", 2015, 10.85, 10.85, 28000, "Diesel", "Dealer", "Manual", 0], ["ignis", 2017, 4.6, 5.45, 9000, "Petrol", "Dealer", "Manual", 0], ["alto 800", 2009, 2.5, 4.1, 28000, "Petrol", "Dealer", "Manual", 0], ["fortuner", 2009, 18.0, 36.23, 50000, "Diesel", "Dealer", "Manual", 0], ["fortuner", 2010, 14.75, 36.23, 93000, "Diesel", "Dealer", "Manual", 0], ["fortuner", 2013, 18.5, 30.61, 31000, "Diesel", "Dealer", "Manual", 0], ["innova", 2013, 14.75, 17.8, 43000, "Diesel", "Dealer", "Manual", 0], ["innova", 2009, 8.0, 17.8, 115000, "Diesel", "Dealer", "Manual", 0], ["swift", 2018, 8.7, 6.87, 9000, "Petrol", "Dealer", "Manual", 0], ["corolla altis", 2014, 15.0, 15.7, 27000, "Petrol", "Dealer", "Manual", 0], ["fortuner", 2016, 20.9, 30.65, 16000, "Diesel", "Dealer", "Manual", 0], ["innova", 2010, 12.5, 17.8, 100000, "Diesel", "Dealer", "Manual", 0], ["fortuner", 2012, 17.5, 30.61, 75000, "Diesel", "Dealer", "Manual", 0], ["corolla altis", 2012, 11.0, 15.7, 26000, "Petrol", "Dealer", "Manual", 0], ["verna", 2017, 13.25, 16.45, 27000, "Petrol", "Dealer", "Manual", 0], ["fortuner", 2012, 15.5, 30.61, 75000, "Diesel", "Dealer", "Automatic", 0], ["innova", 2012, 10.7, 17.8, 93000, "Diesel", "Dealer", "Manual", 0], ["corolla altis", 2015, 13.5, 15.7, 18000, "Petrol", "Dealer", "Manual", 0], ["verna", 2018, 13.0, 13.0, 5000, "Petrol", "Dealer", "Manual", 0], ["verna", 2015, 13.0, 16.95, 35000, "Diesel", "Dealer", "Manual", 0], ["innova", 2011, 8.5, 17.8, 97000, "Diesel", "Dealer", "Manual", 0], ["ertiga", 2014, 8.0, 9.84, 55000, "CNG", "Dealer", "Manual", 0], ["ertiga", 2016, 10.0, 8.66, 45000, "Diesel", "Dealer", "Manual", 0], ["ciaz", 2017, 9.5, 9.85, 10000, "Petrol", "Dealer", "Manual", 0], ["innova", 2008, 6.5, 17.8, 90000, "Diesel", "Dealer", "Manual", 0], ["city", 2012, 9.5, 11.6, 33000, "Petrol", "Dealer", "Manual", 0], ["city", 2015, 11.2, 11.6, 25000, "Petrol", "Dealer", "Manual", 0], ["verna", 2017, 9.5, 13.45, 22000, "Petrol", "Dealer", "Manual", 0], ["city", 2015, 12.8, 12.89, 9499, "Diesel", "Dealer", "Manual", 0], ["verna", 2016, 10.0, 14.47, 27000, "Petrol", "Dealer", "Manual", 0], ["city", 2016, 9.0, 11.6, 50000, "Petrol", "Dealer", "Manual", 0], ["city", 2015, 10.5, 11.6, 26000, "Petrol", "Dealer", "Manual", 0], ["s-cross", 2017, 12.9, 13.14, 20000, "Diesel", "Dealer", "Manual", 0], ["city", 2013, 8.7, 11.6, 50000, "Petrol", "Dealer", "Manual", 0], ["sx4", 2013, 4.75, 9.54, 30000, "Petrol", "Dealer", "Manual", 0], ["fortuner", 2015, 24.75, 30.65, 40000, "Diesel", "Dealer", "Automatic", 0], ["jazz", 2015, 5.0, 8.03, 68000, "Petrol", "Dealer", "Manual", 0], ["verna", 2017, 12.0, 15.06, 14000, "Petrol", "Dealer", "Manual", 0], ["innova", 2007, 7.0, 17.8, 120000, "Diesel", "Dealer", "Manual", 0], ["corolla altis", 2013, 10.0, 15.7, 65000, "Petrol", "Dealer", "Manual", 0], ["fortuner", 2018, 28.0, 30.65, 3000, "Diesel", "Dealer", "Automatic", 0], ["alto", 2014, 2.0, 3.46, 45000, "Petrol", "Dealer", "Manual", 0], ["verna", 2014, 10.0, 15.06, 21000, "Petrol", "Dealer", "Manual", 0], ["ritz", 2013, 2.75, 5.59, 40000, "Petrol", "Dealer", "Manual", 0], ["alto 800", 2014, 1.5, 3.26, 27000, "Petrol", "Dealer", "Manual", 0], ["corolla altis", 2010, 8.0, 15.7, 70000, "Petrol", "Dealer", "Manual", 0], ["corolla altis", 2008, 6.5, 15.7, 81000, "Petrol", "Dealer", "Manual", 0], ["corolla altis", 2012, 9.5, 15.7, 37000, "Petrol", "Dealer", "Manual", 0], ["corolla altis", 2011, 8.5, 15.7, 57000, "Petrol", "Dealer", "Manual", 0], ["corolla altis", 2016, 14.5, 15.7, 5000, "Petrol", "Dealer", "Manual", 0], ["fortuner", 2013, 24.5, 36.23, 30000, "Diesel", "Dealer", "Automatic", 0], ["innova", 2013, 12.0, 17.8, 60000, "Diesel", "Dealer", "Manual", 0], ["s-cross", 2017, 14.0, 13.14, 2000, "Diesel", "Dealer", "Manual", 0], ["brio", 2016, 4.0, 5.9, 10000, "Petrol", "Dealer", "Manual", 0], ["verna", 2011, 7.0, 15.06, 70000, "Petrol", "Dealer", "Manual", 0], ["city", 2009, 5.5, 11.6, 55000, "Petrol", "Dealer", "Manual", 0], ["city", 2013, 9.0, 11.6, 42000, "Petrol", "Dealer", "Manual", 0], ["verna", 2016, 12.0, 16.45, 15000, "Petrol", "Dealer", "Manual", 0], ["corolla altis", 2015, 17.0, 18.03, 24000, "Diesel", "Dealer", "Manual", 0], ["city", 2014, 10.7, 11.6, 30000, "Petrol", "Dealer", "Manual", 0], ["verna", 2016, 11.0, 16.45, 19000, "Petrol", "Dealer", "Manual", 0], ["innova", 2016, 17.5, 17.8, 20000, "Diesel", "Dealer", "Manual", 0], ["corolla altis", 2014, 13.5, 17.47, 25000, "Diesel", "Dealer", "Manual", 0], ["verna", 2018, 13.75, 13.0, 1000, "Petrol", "Dealer", "Manual", 0], ["brio", 2015, 4.3, 5.9, 33500, "Petrol", "Dealer", "Manual", 0], ["innova", 2015, 15.5, 17.8, 28000, "Diesel", "Dealer", "Manual", 0], ["city", 2017, 12.5, 11.6, 15000, "Petrol", "Dealer", "Manual", 0], ["city", 2016, 12.0, 12.89, 24000, "Diesel", "Dealer", "Manual", 0], ["swift", 2017, 5.0, 6.87, 4000, "Petrol", "Dealer", "Manual", 0], ["brio", 2015, 4.5, 5.9, 19000, "Petrol", "Dealer", "Manual", 0], ["innova", 2014, 12.5, 17.8, 45000, "Diesel", "Dealer", "Manual", 0], ["corolla altis", 2012, 9.75, 15.7, 58000, "Petrol", "Dealer", "Manual", 0], ["ciaz", 2017, 9.75, 9.85, 4000, "Petrol", "Dealer", "Manual", 0], ["innova", 2016, 18.0, 17.8, 8000, "Diesel", "Dealer", "Manual", 0], ["city", 2012, 8.5, 11.6, 36300, "Petrol", "Dealer", "Manual", 0], ["city", 2014, 11.0, 12.89, 24000, "Diesel", "Dealer", "Manual", 0], ["innova", 2015, 14.5, 17.8, 36000, "Diesel", "Dealer", "Manual", 0], ["fortuner", 2017, 27.5, 30.65, 9000, "Diesel", "Dealer", "Manual", 0], ["corolla altis", 2016, 18.0, 18.03, 8500, "Diesel", "Dealer", "Manual", 0], ["city", 2011, 7.5, 11.6, 70000, "Petrol", "Dealer", "Manual", 0], ["city", 2010, 6.0, 11.6, 88000, "Petrol", "Dealer", "Manual", 0], ["s-cross", 2015, 9.4, 11.94, 26800, "Diesel", "Dealer", "Manual", 0], ["city", 2011, 7.9, 11.6, 62000, "Petrol", "Dealer", "Manual", 0], ["city", 2013, 9.5, 11.6, 35000, "Petrol", "Dealer", "Manual", 0], ["innova", 2012, 12.0, 17.8, 61000, "Diesel", "Dealer", "Manual", 0], ["innova", 2016, 20.0, 17.8, 10000, "Diesel", "Dealer", "Automatic", 0], ["ciaz", 2016, 8.25, 9.85, 40000, "Petrol", "Dealer", "Manual", 0], ["innova", 2013, 13.0, 17.8, 50000, "Diesel", "Dealer", "Manual", 0], ["brio", 2016, 4.75, 5.9, 8000, "Petrol", "Dealer", "Manual", 0], ["city", 2014, 9.0, 11.6, 44000, "Petrol", "Dealer", "Manual", 0], ["innova", 2017, 19.0, 17.8, 11000, "Diesel", "Dealer", "Manual", 0], ["innova", 2015, 14.0, 17.8, 38000, "Diesel", "Dealer", "Manual", 0], ["innova", 2012, 9.5, 17.8, 97000, "Diesel", "Dealer", "Manual", 0], ["innova", 2014, 13.0, 17.8, 51000, "Diesel", "Dealer", "Manual", 0], ["fortuner", 2010, 16.0, 36.23, 60000, "Diesel", "Dealer", "Manual", 0], ["city", 2016, 9.5, 11.6, 33988, "Diesel", "Dealer", "Manual", 0], ["brio", 2015, 4.0, 5.9, 60000, "Petrol", "Dealer", "Manual", 0], ["city", 2009, 3.35, 11.0, 87934, "Petrol", "Dealer", "Manual", 0], ["city", 2017, 11.5, 12.5, 9000, "Diesel", "Dealer", "Manual", 0], ["brio", 2016, 5.3, 5.9, 5464, "Petrol", "Dealer", "Manual", 0], ["wagon r", 2013, 2.0, 4.15, 55000, "Petrol", "Individual", "Manual", 0], ["swift", 2010, 2.5, 6.87, 42000, "Petrol", "Individual", "Manual", 0], ["alto", 2015, 1.0, 3.46, 70000, "Petrol", "Individual", "Manual", 0], ["ritz", 2012, 2.5, 5.59, 45000, "Petrol", "Individual", "Manual", 0], ["wagon r", 2016, 3.0, 5.48, 15000, "Petrol", "Individual", "Manual", 0], ["swift", 2014, 3.5, 6.87, 35000, "Petrol", "Individual", "Manual", 0], ["alto 800", 2013, 1.6, 3.26, 45000, "Petrol", "Individual", "Manual", 0], ["ertiga", 2016, 5.5, 8.66, 21000, "Petrol", "Individual", "Manual", 0], ["swift", 2016, 4.5, 6.87, 25000, "Petrol", "Individual", "Manual", 0], ["wagon r", 2011, 2.0, 4.15, 60000, "Petrol", "Individual", "Manual", 0], ["swift", 2013, 3.75, 6.87, 38000, "Petrol", "Individual", "Manual", 0], ["alto 800", 2015, 2.0, 3.26, 18000, "Petrol", "Individual", "Manual", 0], ["i20", 2015, 5.5, 7.88, 45000, "Petrol", "Individual", "Manual", 0], ["i20", 2016, 6.5, 8.36, 22000, "Petrol", "Individual", "Manual", 0], ["baleno", 2017, 6.2, 6.84, 15000, "Petrol", "Individual", "Manual", 0], ["wagon r", 2009, 1.2, 4.15, 85000, "Petrol", "Individual", "Manual", 0], ["ertiga", 2014, 5.0, 9.84, 60000, "Petrol", "Individual", "Manual", 0], ["i20", 2014, 5.0, 7.88, 60000, "Petrol", "Individual", "Manual", 0], ["ritz", 2016, 4.0, 5.59, 20000, "Petrol", "Individual", "Manual", 0], ["wagon r", 2014, 2.85, 5.48, 40000, "Petrol", "Individual", "Manual", 0], ["swift", 2015, 4.2, 6.87, 30000, "Petrol", "Individual", "Manual", 0], ["i20", 2016, 6.0, 8.36, 17000, "Petrol", "Individual", "Manual", 0], ["alto 800", 2016, 2.5, 3.26, 12000, "Petrol", "Individual", "Manual", 0], ["wagon r", 2013, 2.5, 4.15, 50000, "Petrol", "Individual", "Manual", 0], ["swift", 2012, 3.25, 6.87, 46000, "Petrol", "Individual", "Manual", 0], ["celerio", 2016, 3.5, 5.24, 28000, "Petrol", "Individual", "Manual", 0], ["swift", 2011, 2.85, 6.87, 53000, "Petrol", "Individual", "Manual", 0], ["i20", 2013, 4.5, 7.88, 55000, "Petrol", "Individual", "Manual", 0], ["swift", 2017, 5.5, 6.87, 16000, "Petrol", "Individual", "Manual", 0], ["alto 800", 2017, 2.85, 3.26, 5000, "Petrol", "Individual", "Manual", 0], ["ritz", 2014, 3.5, 5.59, 32000, "Petrol", "Individual", "Manual", 0], ["wagon r", 2010, 1.8, 4.15, 67000, "Petrol", "Individual", "Manual", 0], ["i20", 2012, 4.0, 7.88, 70000, "Petrol", "Individual", "Manual", 0], ["celerio", 2015, 3.0, 5.24, 38000, "Petrol", "Individual", "Manual", 0], ["ritz", 2013, 3.0, 5.59, 50000, "Petrol", "Individual", "Manual", 0], ["swift", 2016, 5.0, 6.87, 22000, "Petrol", "Individual", "Manual", 0], ["baleno", 2018, 6.9, 7.45, 8000, "Petrol", "Individual", "Manual", 0], ["alto 800", 2013, 1.8, 3.26, 56000, "Petrol", "Individual", "Manual", 0], ["wagon r", 2015, 3.0, 5.48, 33000, "Petrol", "Individual", "Manual", 0], ["alto 800", 2016, 2.0, 3.26, 22000, "Petrol", "Individual", "Manual", 0], ["i20", 2017, 7.0, 8.36, 12000, "Petrol", "Individual", "Manual", 0], ["swift", 2014, 3.85, 6.87, 40000, "Petrol", "Individual", "Manual", 0], ["i20", 2015, 5.75, 8.36, 35000, "Petrol", "Individual", "Manual", 0], ["swift", 2013, 3.5, 6.87, 42000, "Petrol", "Individual", "Manual", 0], ["ritz", 2015, 3.9, 5.59, 28000, "Petrol", "Individual", "Manual", 0], ["celerio", 2017, 4.0, 5.24, 18000, "Petrol", "Individual", "Manual", 0], ["i20", 2018, 7.5, 8.36, 6000, "Petrol", "Individual", "Manual", 0], ["wagon r", 2012, 2.2, 4.15, 57000, "Petrol", "Individual", "Manual", 0], ["baleno", 2017, 6.5, 7.45, 18000, "Petrol", "Individual", "Manual", 0], ["swift", 2015, 4.5, 6.87, 28000, "Petrol", "Individual", "Manual", 0], ["alto 800", 2015, 1.75, 3.26, 30000, "Petrol", "Individual", "Manual", 0], ["ritz", 2012, 2.8, 5.59, 52000, "Petrol", "Individual", "Manual", 0], ["wagon r", 2016, 3.5, 5.48, 20000, "Petrol", "Individual", "Manual", 0], ["i20", 2014, 4.75, 7.88, 52000, "Petrol", "Individual", "Manual", 0], ["swift", 2016, 4.8, 6.87, 26000, "Petrol", "Individual", "Manual", 0], ["celerio", 2016, 3.75, 5.24, 24000, "Petrol", "Individual", "Manual", 0], ["sx4", 2011, 3.0, 9.54, 68000, "Petrol", "Individual", "Manual", 0], ["alto 800", 2014, 1.9, 3.26, 40000, "Petrol", "Individual", "Manual", 0], ["wagon r", 2014, 2.7, 5.48, 48000, "Petrol", "Individual", "Manual", 0], ["i20", 2016, 5.8, 8.36, 28000, "Petrol", "Individual", "Manual", 0], ["swift", 2014, 3.25, 6.87, 50000, "Petrol", "Individual", "Manual", 0], ["celerio", 2015, 2.75, 5.24, 44000, "Petrol", "Individual", "Manual", 0], ["ritz", 2016, 3.8, 5.59, 24000, "Petrol", "Individual", "Manual", 0], ["wagon r", 2013, 2.3, 4.15, 58000, "Petrol", "Individual", "Manual", 0], ["i20", 2015, 5.25, 7.88, 40000, "Petrol", "Individual", "Manual", 0], ["swift", 2013, 3.0, 6.87, 48000, "Petrol", "Individual", "Manual", 0], ["alto 800", 2016, 2.2, 3.26, 16000, "Petrol", "Individual", "Manual", 0], ["baleno", 2016, 5.8, 7.45, 30000, "Petrol", "Individual", "Manual", 0], ["ertiga", 2015, 5.2, 8.66, 35000, "Petrol", "Individual", "Manual", 0], ["swift", 2015, 4.1, 6.87, 32000, "Petrol", "Individual", "Manual", 0], ["i20", 2013, 4.2, 7.88, 64000, "Petrol", "Individual", "Manual", 0], ["wagon r", 2011, 1.9, 4.15, 72000, "Petrol", "Individual", "Manual", 0], ["alto 800", 2017, 2.7, 3.26, 8000, "Petrol", "Individual", "Manual", 0], ["i20", 2016, 6.2, 8.36, 19000, "Petrol", "Individual", "Manual", 0], ["swift", 2012, 2.95, 6.87, 55000, "Petrol", "Individual", "Manual", 0], ["celerio", 2014, 2.5, 5.24, 50000, "Petrol", "Individual", "Manual", 0], ["ritz", 2011, 2.4, 5.59, 65000, "Petrol", "Individual", "Manual", 0], ["wagon r", 2015, 2.8, 5.48, 38000, "Petrol", "Individual", "Manual", 0], ["i20", 2014, 4.6, 7.88, 56000, "Petrol", "Individual", "Manual", 0], ["swift", 2016, 4.6, 6.87, 24000, "Petrol", "Individual", "Manual", 0], ["celerio", 2016, 3.6, 5.24, 26000, "Petrol", "Individual", "Manual", 0], ["sx4", 2010, 2.5, 9.54, 80000, "Petrol", "Individual", "Manual", 1], ["dzire", 2013, 3.5, 7.0, 50000, "Petrol", "Individual", "Manual", 1], ["swift", 2012, 2.75, 6.87, 60000, "Petrol", "Individual", "Manual", 1], ["wagon r", 2010, 1.6, 4.15, 75000, "Petrol", "Individual", "Manual", 1], ["alto 800", 2012, 1.2, 3.26, 65000, "Petrol", "Individual", "Manual", 1], ["i20", 2013, 3.75, 7.88, 70000, "Petrol", "Individual", "Manual", 1], ["ritz", 2011, 2.0, 5.59, 72000, "Petrol", "Individual", "Manual", 1], ["swift", 2010, 2.2, 6.87, 68000, "Petrol", "Individual", "Manual", 1], ["celerio", 2015, 2.6, 5.24, 42000, "Petrol", "Individual", "Manual", 1], ["dzire", 2012, 3.0, 7.0, 58000, "Petrol", "Individual", "Manual", 1], ["wagon r", 2009, 1.4, 4.15, 88000, "Petrol", "Individual", "Manual", 1], ["i20", 2012, 3.5, 7.88, 75000, "Petrol", "Individual", "Manual", 1], ["swift", 2011, 2.0, 6.87, 65000, "Petrol", "Individual", "Manual", 1], ["alto 800", 2011, 1.0, 3.26, 78000, "Petrol", "Individual", "Manual", 1], ["ritz", 2010, 1.8, 5.59, 80000, "Petrol", "Individual", "Manual", 1], ["dzire", 2014, 3.8, 7.0, 42000, "Petrol", "Individual", "Manual", 1], ["wagon r", 2012, 2.0, 4.15, 62000, "Petrol", "Individual", "Manual", 1], ["i20", 2011, 3.25, 7.88, 80000, "Petrol", "Individual", "Manual", 1], ["swift", 2013, 3.2, 6.87, 46000, "Petrol", "Individual", "Manual", 1], ["alto 800", 2013, 1.5, 3.26, 55000, "Petrol", "Individual", "Manual", 1], ["innova", 2008, 6.0, 17.8, 130000, "Diesel", "Individual", "Manual", 1], ["fortuner", 2008, 13.0, 36.23, 100000, "Diesel", "Individual", "Manual", 1], ["sx4", 2012, 3.5, 9.54, 55000, "Petrol", "Individual", "Manual", 1], ["jazz", 2014, 4.5, 8.03, 40000, "Petrol", "Individual", "Manual", 1], ["wagon r", 2008, 1.1, 4.15, 95000, "Petrol", "Individual", "Manual", 1], ["dzire", 2015, 4.2, 7.0, 32000, "Petrol", "Individual", "Manual", 1], ["i20", 2014, 4.25, 7.88, 58000, "Petrol", "Individual", "Manual", 1], ["swift", 2012, 2.8, 6.87, 58000, "Petrol", "Individual", "Manual", 1], ["sx4", 2009, 2.2, 9.54, 90000, "Petrol", "Individual", "Manual", 1], ["innova", 2007, 5.5, 17.8, 145000, "Diesel", "Individual", "Manual", 1], ["ritz", 2009, 1.6, 5.59, 90000, "Petrol", "Individual", "Manual", 1], ["dzire", 2016, 5.0, 7.0, 22000, "Petrol", "Individual", "Manual", 1], ["wagon r", 2011, 1.75, 4.15, 70000, "Petrol", "Individual", "Manual", 1], ["swift", 2014, 3.7, 6.87, 38000, "Petrol", "Individual", "Manual", 1], ["i20", 2013, 3.9, 7.88, 68000, "Petrol", "Individual", "Manual", 1], ["celerio", 2015, 2.8, 5.24, 40000, "Petrol", "Individual", "Manual", 1], ["dzire", 2011, 2.5, 7.0, 68000, "Petrol", "Individual", "Manual", 1], ["wagon r", 2010, 1.7, 4.15, 78000, "Petrol", "Individual", "Manual", 1], ["swift", 2011, 2.3, 6.87, 62000, "Petrol", "Individual", "Manual", 1], ["ritz", 2012, 2.2, 5.59, 60000, "Petrol", "Individual", "Manual", 1], ["dzire", 2013, 3.25, 7.0, 54000, "Petrol", "Individual", "Manual", 1], ["alto 800", 2013, 1.35, 3.26, 60000, "Petrol", "Individual", "Manual", 1], ["innova", 2010, 7.5, 17.8, 108000, "Diesel", "Individual", "Manual", 2], ["fortuner", 2007, 12.0, 36.23, 120000, "Diesel", "Individual", "Manual", 2], ["innova", 2009, 6.5, 17.8, 125000, "Diesel", "Individual", "Manual", 2], ["sx4", 2008, 1.8, 9.54, 100000, "Petrol", "Individual", "Manual", 2], ["wagon r", 2007, 0.9, 4.15, 110000, "Petrol", "Individual", "Manual", 2], ["swift", 2009, 1.8, 6.87, 80000, "Petrol", "Individual", "Manual", 2], ["alto 800", 2010, 0.8, 3.26, 90000, "Petrol", "Individual", "Manual", 2], ["innova", 2011, 8.0, 17.8, 115000, "Diesel", "Individual", "Manual", 2], ["fortuner", 2006, 11.0, 36.23, 140000, "Diesel", "Individual", "Manual", 2], ["sx4", 2007, 1.5, 9.54, 110000, "Petrol", "Individual", "Manual", 2], ["corolla altis", 2007, 5.0, 15.7, 110000, "Petrol", "Individual", "Manual", 2], ["innova", 2006, 5.0, 17.8, 150000, "Diesel", "Individual", "Manual", 2], ["fortuner", 2009, 14.0, 36.23, 80000, "Diesel", "Individual", "Manual", 2], ["sx4", 2010, 2.0, 9.54, 95000, "Petrol", "Individual", "Manual", 2], ["wagon r", 2006, 0.7, 4.15, 125000, "Petrol", "Individual", "Manual", 2], ["innova", 2007, 6.0, 17.8, 138000, "Diesel", "Individual", "Manual", 2], ["ertiga", 2014, 4.0, 9.84, 70000, "CNG", "Individual", "Manual", 2], ["innova", 2008, 5.5, 17.8, 135000, "Diesel", "Individual", "Manual", 3], ["fortuner", 2005, 10.0, 36.23, 160000, "Diesel", "Individual", "Manual", 3], ["innova", 2006, 4.5, 17.8, 155000, "Diesel", "Individual", "Manual", 3], ["Hero Passion Pro", 2016, 0.35, 0.62, 20000, "Petrol", "Individual", "Manual", 0], ["Hero Passion Pro", 2015, 0.2, 0.62, 28000, "Petrol", "Individual", "Manual", 0], ["Hero Passion Pro", 2014, 0.15, 0.62, 40000, "Petrol", "Individual", "Manual", 0], ["Honda CB Hornet 160R", 2017, 1.0, 1.15, 8000, "Petrol", "Individual", "Manual", 0], ["Bajaj Pulsar NS 200", 2015, 0.9, 1.05, 12000, "Petrol", "Individual", "Manual", 0], ["Hero Splendor Plus", 2016, 0.45, 0.52, 18000, "Petrol", "Individual", "Manual", 0], ["Hero Splendor Plus", 2015, 0.3, 0.52, 30000, "Petrol", "Individual", "Manual", 0], ["Bajaj Pulsar 220 F", 2014, 0.8, 1.25, 25000, "Petrol", "Individual", "Manual", 0], ["Honda Activa 125", 2016, 0.8, 0.75, 11000, "Petrol", "Individual", "Manual", 0], ["Hero Hunk", 2014, 0.5, 0.88, 32000, "Petrol", "Individual", "Manual", 0], ["Hero  Ignitor Disc", 2015, 0.25, 0.7, 22000, "Petrol", "Individual", "Manual", 0], ["Hero  CBZ Xtreme", 2011, 0.1, 0.88, 55000, "Petrol", "Individual", "Manual", 0], ["Bajaj  ct 100", 2003, 0.1, 0.32, 60000, "Petrol", "Individual", "Manual", 0], ["alto 800", 2018, 2.9, 3.26, 2000, "Petrol", "Dealer", "Manual", 0], ["swift", 2018, 6.5, 6.87, 5000, "Petrol", "Dealer", "Manual", 0], ["baleno", 2018, 7.2, 7.45, 4000, "Petrol", "Dealer", "Manual", 0], ["celerio", 2018, 4.5, 5.24, 3000, "Petrol", "Dealer", "Manual", 0], ["i20", 2018, 7.8, 8.36, 5000, "Petrol", "Dealer", "Manual", 0], ["wagon r", 2018, 4.0, 5.48, 3000, "Petrol", "Dealer", "Manual", 0], ["dzire", 2018, 6.5, 7.0, 4000, "Petrol", "Dealer", "Manual", 0], ["verna", 2018, 12.5, 14.47, 6000, "Petrol", "Dealer", "Manual", 0], ["corolla altis", 2017, 17.5, 18.03, 12000, "Petrol", "Dealer", "Manual", 0], ["s-cross", 2018, 14.5, 13.14, 2000, "Diesel", "Dealer", "Manual", 0], ["innova", 2018, 22.0, 17.8, 5000, "Diesel", "Dealer", "Manual", 0], ["city", 2018, 13.5, 12.89, 5000, "Diesel", "Dealer", "Manual", 0], ["fortuner", 2018, 30.0, 30.65, 4000, "Diesel", "Dealer", "Automatic", 0], ["baleno", 2016, 5.5, 7.45, 35000, "Petrol", "Individual", "Manual", 0], ["ertiga", 2017, 8.0, 8.66, 12000, "Petrol", "Individual", "Manual", 0], ["jazz", 2016, 6.0, 8.03, 30000, "Petrol", "Individual", "Manual", 0], ["jazz", 2013, 3.75, 8.03, 58000, "Petrol", "Dealer", "Manual", 0], ["innova", 2017, 20.0, 17.8, 15000, "Diesel", "Dealer", "Automatic", 0], ["corolla altis", 2016, 16.0, 18.03, 15000, "Diesel", "Dealer", "Automatic", 0], ["fortuner", 2016, 22.0, 30.65, 25000, "Diesel", "Dealer", "Automatic", 0], ["verna", 2015, 11.0, 14.47, 25000, "Diesel", "Dealer", "Manual", 0], ["city", 2017, 13.0, 12.89, 9000, "Diesel", "Dealer", "Manual", 0], ["s-cross", 2016, 11.5, 11.94, 40000, "Diesel", "Dealer", "Manual", 0], ["ciaz", 2016, 9.0, 9.85, 28000, "Petrol", "Dealer", "Manual", 0], ["ertiga", 2013, 6.0, 8.66, 50000, "Petrol", "Dealer", "Manual", 0], ["sx4", 2014, 4.5, 9.54, 38000, "Diesel", "Dealer", "Manual", 0], ["corolla altis", 2009, 7.0, 15.7, 90000, "Petrol", "Dealer", "Manual", 0], ["innova", 2014, 14.0, 17.8, 42000, "Diesel", "Dealer", "Automatic", 0], ["city", 2016, 13.0, 12.89, 20000, "Diesel", "Dealer", "Manual", 0], ["verna", 2017, 14.0, 16.45, 10000, "Diesel", "Dealer", "Manual", 0], ["s-cross", 2017, 13.5, 13.14, 12000, "Diesel", "Dealer", "Manual", 0], ["brio", 2014, 3.5, 5.9, 45000, "Petrol", "Dealer", "Manual", 0], ["innova", 2018, 25.0, 17.8, 3000, "Diesel", "Dealer", "Automatic", 0], ["city", 2018, 14.0, 12.89, 3000, "Diesel", "Dealer", "Manual", 0], ["verna", 2018, 14.5, 16.45, 4000, "Diesel", "Dealer", "Manual", 0], ["fortuner", 2017, 32.0, 30.65, 8000, "Diesel", "Dealer", "Automatic", 0], ["innova", 2017, 21.0, 17.8, 12000, "Diesel", "Dealer", "Automatic", 0], ["corolla altis", 2018, 22.0, 18.03, 3000, "Diesel", "Dealer", "Automatic", 0], ["s-cross", 2016, 10.5, 11.94, 48000, "Diesel", "Dealer", "Manual", 0], ["verna", 2016, 13.5, 16.45, 12000, "Diesel", "Dealer", "Manual", 0], ["corolla altis", 2017, 20.0, 18.03, 5000, "Diesel", "Dealer", "Automatic", 0], ["innova", 2016, 19.5, 17.8, 18000, "Diesel", "Dealer", "Automatic", 0], ["fortuner", 2015, 27.0, 30.65, 22000, "Diesel", "Dealer", "Automatic", 0], ["city", 2015, 12.5, 12.89, 16000, "Diesel", "Dealer", "Manual", 0], ["s-cross", 2015, 10.0, 11.94, 35000, "Diesel", "Dealer", "Manual", 0], ["verna", 2015, 12.0, 16.45, 20000, "Diesel", "Dealer", "Manual", 0], ["corolla altis", 2015, 16.0, 18.03, 22000, "Diesel", "Dealer", "Manual", 0], ["innova", 2015, 16.0, 17.8, 32000, "Diesel", "Dealer", "Automatic", 0], ["fortuner", 2014, 24.0, 30.65, 35000, "Diesel", "Dealer", "Automatic", 0], ["city", 2014, 11.5, 12.89, 28000, "Diesel", "Dealer", "Manual", 0], ["verna", 2014, 11.0, 16.45, 28000, "Diesel", "Dealer", "Manual", 0], ["corolla altis", 2014, 14.0, 18.03, 35000, "Diesel", "Dealer", "Manual", 0], ["innova", 2013, 11.5, 17.8, 65000, "Diesel", "Dealer", "Automatic", 0], ["fortuner", 2013, 22.0, 30.65, 45000, "Diesel", "Dealer", "Automatic", 0], ["city", 2013, 10.0, 12.89, 40000, "Diesel", "Dealer", "Manual", 0], ["verna", 2013, 9.5, 16.45, 40000, "Diesel", "Dealer", "Manual", 0], ["innova", 2012, 11.0, 17.8, 80000, "Diesel", "Dealer", "Automatic", 0], ["city", 2012, 9.0, 12.89, 55000, "Diesel", "Dealer", "Manual", 0], ["fortuner", 2012, 20.0, 30.65, 55000, "Diesel", "Dealer", "Automatic", 0], ["innova", 2011, 10.0, 17.8, 90000, "Diesel", "Dealer", "Automatic", 0], ["city", 2010, 7.0, 12.89, 75000, "Diesel", "Dealer", "Manual", 0], ["s-cross", 2016, 12.0, 11.94, 35000, "Diesel", "Dealer", "Manual", 0]];
+const TOTAL=324;
+
+function agegrp(a){return a<=3?"0–3 yrs":a<=6?"4–6 yrs":a<=10?"7–10 yrs":"10+ yrs"}
+function milgrp(k){return k<20000?"<20k km":k<50000?"20k–50k km":k<100000?"50k–100k km":"100k+ km"}
+
+const DATA=RAW.map(r=>({
+  nm:r[0],yr:r[1],sp:r[2],pp:r[3],km:r[4],
+  fu:r[5],se:r[6],tr:r[7],ow:r[8],
+  age:2020-r[1],depr:r[3]-r[2],
+  dpct:r[3]>0?((r[3]-r[2])/r[3])*100:0,
+  ag:agegrp(2020-r[1]),mg:milgrp(r[4])
+}));
+
+// HELPERS
+const avg=a=>a.length?a.reduce((s,v)=>s+v,0)/a.length:0;
+const fmt=v=>"₹"+v.toFixed(2)+"L";
+function grp(a,k,fn){const m={};a.forEach(d=>{const v=d[k];if(!m[v])m[v]=[];m[v].push(fn?fn(d):d)});return m}
+const C={bl:"#2563eb",gr:"#10b981",am:"#f59e0b",re:"#ef4444",pu:"#8b5cf6",cy:"#06b6d4",pi:"#ec4899",li:"#84cc16"};
+const CAT=[C.bl,C.gr,C.am,C.re,C.pu,C.cy,C.pi,C.li,"#6366f1","#14b8a6"];
+const FC={"Petrol":C.bl,"Diesel":C.am,"CNG":C.gr};
+const GC="rgba(255,255,255,0.06)",TC="#8b949e";
+const SC={x:{grid:{color:GC},ticks:{color:TC,font:{family:"Inter"}}},y:{grid:{color:GC},ticks:{color:TC,font:{family:"Inter"}}}};
+const LG={labels:{color:"#f0f6fc",font:{family:"Inter",size:11}}};
+const CH={};
+function mk(id,cfg){if(CH[id])CH[id].destroy();const el=document.getElementById(id);if(!el)return;CH[id]=new Chart(el,cfg)}
+
+// FILTER
+let FD=[];
+function getFD(){
+  const fu=[...document.querySelectorAll("#ff input:checked")].map(x=>x.value);
+  const se=[...document.querySelectorAll("#sf input:checked")].map(x=>x.value);
+  const tr=[...document.querySelectorAll("#tf input:checked")].map(x=>x.value);
+  const ow=[...document.querySelectorAll("#of input:checked")].map(x=>+x.value);
+  const y0=+document.getElementById("ym").value,y1=+document.getElementById("yx").value;
+  return DATA.filter(d=>fu.includes(d.fu)&&se.includes(d.se)&&tr.includes(d.tr)&&ow.includes(d.ow)&&d.yr>=y0&&d.yr<=y1);
+}
+
+function update(){
+  FD=getFD();
+  document.getElementById("rc").textContent=FD.length;
+  document.getElementById("fc1").textContent=document.querySelectorAll("#ff input:checked").length;
+  document.getElementById("fc2").textContent=document.querySelectorAll("#sf input:checked").length;
+  document.getElementById("fc3").textContent=document.querySelectorAll("#tf input:checked").length;
+  document.getElementById("fc4").textContent=document.querySelectorAll("#of input:checked").length;
+  if(!FD.length){["k1","k2","k3","k4","k5","k6","k7"].forEach(i=>document.getElementById(i).textContent="—");document.getElementById("il").innerHTML='<div class="es"><div class="eic">📭</div><h3>No Data</h3><p>Adjust filters to see results.</p></div>';return}
+  doKPIs();doInsights();doOverview();doPrice();doTrends();doCorr();doDepr();doCar()
+}
+
+function doKPIs(){
+  const sp=FD.map(x=>x.sp),pp=FD.map(x=>x.pp),km=FD.map(x=>x.km),ag=FD.map(x=>x.age);
+  document.getElementById("k1").textContent=FD.length;
+  document.getElementById("k2").textContent=fmt(avg(sp));
+  document.getElementById("k3").textContent=fmt(Math.min(...sp));
+  document.getElementById("k4").textContent=fmt(Math.max(...sp));
+  document.getElementById("k5").textContent=fmt(avg(pp));
+  document.getElementById("k6").textContent=Math.round(avg(km)).toLocaleString("en-IN");
+  document.getElementById("k7").textContent=avg(ag).toFixed(1)+" yrs";
+}
+
+function doInsights(){
+  const L=[];
+  const bt=grp(FD,"tr",x=>x.sp),tk=Object.keys(bt);
+  if(tk.length>=2){const a=tk[0],b=tk[1];L.push(`<strong>${a}</strong> cars avg <strong>${fmt(avg(bt[a]))}</strong> vs <strong>${fmt(avg(bt[b]))}</strong> for <strong>${b}</strong>.`)}
+  const bf=grp(FD,"fu",x=>x.sp),fa=Object.entries(bf).map(([k,v])=>[k,avg(v)]).sort((a,b)=>b[1]-a[1]);
+  if(fa.length)L.push(`<strong>${fa[0][0]}</strong> has the highest avg resale at <strong>${fmt(fa[0][1])}</strong>${fa.length>1?", followed by "+fa.slice(1).map(x=>x[0]+" ("+fmt(x[1])+")").join(", "):"."}.`);
+  const ba=grp(FD,"ag",x=>x.sp),aa=Object.entries(ba).map(([k,v])=>[k,avg(v)]).sort((a,b)=>b[1]-a[1]);
+  if(aa.length)L.push(`Cars in the <strong>${aa[0][0]}</strong> age bracket fetch the highest avg resale price of <strong>${fmt(aa[0][1])}</strong>.`);
+  const ad=avg(FD.map(x=>x.dpct));
+  if(!isNaN(ad))L.push(`On average, these cars have depreciated by <strong>${ad.toFixed(1)}%</strong> from their present market price.`);
+  L.push(`<strong>Present Price</strong> has the strongest positive correlation with Selling Price — the best single numerical predictor of resale value.`);
+  document.getElementById("il").innerHTML=L.map(l=>`<div class="ii"><div class="idot"></div><span>${l}</span></div>`).join("")
+}
+
+// OVERVIEW
+function doOverview(){
+  const sp=FD.map(x=>x.sp);
+  const bins=[0,2,4,6,8,10,12,15,20,25,35];
+  const cnt=Array(bins.length-1).fill(0);
+  sp.forEach(p=>{for(let i=0;i<bins.length-1;i++)if(p>=bins[i]&&p<bins[i+1]){cnt[i]++;break}});
+  const hl=bins.slice(0,-1).map((v,i)=>`₹${v}–${bins[i+1]}L`);
+  mk("c-dist",{type:"bar",data:{labels:hl,datasets:[{label:"Cars",data:cnt,backgroundColor:"#2563ebcc",borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:SC}});
+  function donut(id,key,colors){
+    const c={};FD.forEach(d=>{c[d[key]]=(c[d[key]]||0)+1});const lb=Object.keys(c),vl=lb.map(k=>c[k]);
+    mk(id,{type:"doughnut",data:{labels:lb,datasets:[{data:vl,backgroundColor:colors,borderColor:"#161b22",borderWidth:3}]},options:{responsive:true,maintainAspectRatio:false,cutout:"65%",plugins:{legend:{...LG,position:"bottom",labels:{...LG.labels,padding:8,boxWidth:10}},tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${ctx.raw} (${(ctx.raw/vl.reduce((a,b)=>a+b)*100).toFixed(1)}%)`}}}}})
+  }
+  donut("c-fd","fu",[C.bl,C.am,C.gr]);
+  donut("c-sd","se",[C.bl,C.cy]);
+  donut("c-td","tr",[C.pu,C.gr])
+}
+
+// PRICE
+function doPrice(){
+  function scatter(id,xk,yk,xl,yl){
+    const byF=grp(FD,"fu");
+    const ds=Object.entries(byF).map(([f,r])=>({label:f,data:r.map(d=>({x:d[xk],y:d[yk]})),backgroundColor:(FC[f]||C.cy)+"99",pointRadius:4}));
+    mk(id,{type:"scatter",data:{datasets:ds},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{...LG,position:"bottom"}},scales:{x:{...SC.x,title:{display:true,text:xl,color:TC}},y:{...SC.y,title:{display:true,text:yl,color:TC}}}}})
+  }
+  scatter("c-pp","pp","sp","Present Price (₹ Lakhs)","Selling Price (₹ Lakhs)");
+  scatter("c-sage","age","sp","Car Age (Years)","Selling Price (₹ Lakhs)");
+  scatter("c-skms","km","sp","Kilometres Driven","Selling Price (₹ Lakhs)");
+  function abar(id,key,colors){
+    const m=grp(FD,key,x=>x.sp),lb=Object.keys(m),vl=lb.map(k=>+avg(m[k]).toFixed(2));
+    mk(id,{type:"bar",data:{labels:lb,datasets:[{label:"Avg Selling Price (₹L)",data:vl,backgroundColor:colors,borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`₹${c.raw}L`}}},scales:{...SC,y:{...SC.y,title:{display:true,text:"₹ Lakhs",color:TC}}}}})
+  }
+  abar("c-af","fu",[C.bl,C.am,C.gr]);
+  abar("c-at","tr",[C.pu,C.cy]);
+  abar("c-as","se",[C.bl,C.gr])
+}
+
+// TRENDS
+function doTrends(){
+  const byY=grp(FD,"yr"),ys=Object.keys(byY).sort();
+  mk("c-yc",{type:"bar",data:{labels:ys,datasets:[{label:"Cars",data:ys.map(y=>byY[y].length),backgroundColor:C.bl+"aa",borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:SC}});
+  mk("c-yp",{type:"line",data:{labels:ys,datasets:[{label:"Avg Price",data:ys.map(y=>+avg(byY[y].map(x=>x.sp)).toFixed(2)),borderColor:C.gr,backgroundColor:C.gr+"22",fill:true,tension:0.3,pointBackgroundColor:C.gr,pointRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{...SC,y:{...SC.y,title:{display:true,text:"₹ Lakhs",color:TC}}}}});
+  const ao=["0–3 yrs","4–6 yrs","7–10 yrs","10+ yrs"],bag=grp(FD,"ag",x=>x.sp),al=ao.filter(k=>bag[k]);
+  mk("c-agrp",{type:"bar",data:{labels:al,datasets:[{label:"Avg Price",data:al.map(k=>+avg(bag[k]).toFixed(2)),backgroundColor:[C.gr,C.bl,C.am,C.re],borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:SC}});
+  const mo=["<20k km","20k–50k km","50k–100k km","100k+ km"],bmg=grp(FD,"mg",x=>x.sp),ml=mo.filter(k=>bmg[k]);
+  mk("c-mgrp",{type:"bar",data:{labels:ml,datasets:[{label:"Avg Price",data:ml.map(k=>+avg(bmg[k]).toFixed(2)),backgroundColor:[C.gr,C.bl,C.am,C.re],borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:SC}});
+  const bo=grp(FD,"ow"),ok=Object.keys(bo).sort((a,b)=>+a-+b);
+  const ol=ok.map(k=>{const n={0:"0 (1st)",1:"1 (2nd)",2:"2 (3rd)",3:"3 (4th+)"};return n[k]||k});
+  mk("c-oc",{type:"bar",data:{labels:ol,datasets:[{label:"Cars",data:ok.map(k=>bo[k].length),backgroundColor:CAT,borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:SC}});
+  mk("c-op",{type:"bar",data:{labels:ol,datasets:[{label:"Avg Price",data:ok.map(k=>+avg(bo[k].map(x=>x.sp)).toFixed(2)),backgroundColor:[C.gr,C.bl,C.am,C.re],borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:SC}})
+}
+
+// CORRELATION
+function pearson(x,y){const n=x.length,mx=avg(x),my=avg(y);let nm=0,dx=0,dy=0;for(let i=0;i<n;i++){const a=x[i]-mx,b=y[i]-my;nm+=a*b;dx+=a*a;dy+=b*b};return dx&&dy?nm/Math.sqrt(dx*dy):0}
+function doCorr(){
+  const keys=["sp","pp","km","age","ow"],labs=["Selling_Price","Present_Price","Kms_Driven","Age","Owner"];
+  let h='<table style="border-collapse:separate;border-spacing:3px;font-size:11px"><tr><th style="padding:4px 8px;color:var(--tm)"></th>';
+  labs.forEach(l=>{h+=`<th style="padding:4px 6px;color:var(--tm);text-align:center;font-size:10px">${l.replace("_","<br>")}</th>`});
+  h+="</tr>";
+  keys.forEach((kx,i)=>{
+    h+=`<tr><th style="padding:4px 8px;text-align:right;color:var(--tm);font-size:10px">${labs[i].replace("_","<br>")}</th>`;
+    keys.forEach((ky,j)=>{
+      const r=FD.length>1?pearson(FD.map(d=>d[kx]),FD.map(d=>d[ky])):i===j?1:0;
+      const abs=Math.abs(r);
+      const bg=r>0?`rgba(37,99,235,${abs.toFixed(2)})`:`rgba(239,68,68,${abs.toFixed(2)})`;
+      const tc=abs>0.5?"#fff":"var(--tx)";
+      h+=`<td style="background:${bg};color:${tc};padding:8px 10px;border-radius:4px;text-align:center;font-weight:${abs>0.7?700:400};min-width:60px">${r.toFixed(2)}</td>`
+    });h+="</tr>"
+  });
+  document.getElementById("corr").innerHTML=h+"</table>"
+}
+
+// DEPRECIATION
+function doDepr(){
+  const ad=avg(FD.map(x=>x.depr)),adp=avg(FD.map(x=>x.dpct)),mxd=Math.max(...FD.map(x=>x.depr)),mnd=Math.min(...FD.map(x=>x.dpct));
+  document.getElementById("dkg").innerHTML=`
+    <div class="dkc"><div class="dkl">Avg Depreciation</div><div class="dkv">₹${ad.toFixed(2)}L</div><div class="dks">Present − Selling</div></div>
+    <div class="dkc"><div class="dkl">Avg Depreciation %</div><div class="dkv">${adp.toFixed(1)}%</div><div class="dks">Value lost from present</div></div>
+    <div class="dkc"><div class="dkl">Max Depreciation</div><div class="dkv">₹${mxd.toFixed(2)}L</div><div class="dks">Highest single-car loss</div></div>
+    <div class="dkc"><div class="dkl">Best Retention</div><div class="dkv" style="color:var(--gr)">${mnd.toFixed(1)}%</div><div class="dks">Lowest depreciation %</div></div>`;
+  const byF=grp(FD,"fu");
+  const dsA=Object.entries(byF).map(([f,r])=>({label:f,data:r.map(x=>({x:x.age,y:x.dpct})),backgroundColor:(FC[f]||C.cy)+"99",pointRadius:4}));
+  mk("c-da",{type:"scatter",data:{datasets:dsA},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{...LG,position:"bottom"}},scales:{x:{...SC.x,title:{display:true,text:"Car Age (Years)",color:TC}},y:{...SC.y,title:{display:true,text:"Depreciation %",color:TC}}}}});
+  const dsK=Object.entries(byF).map(([f,r])=>({label:f,data:r.map(x=>({x:x.km,y:x.dpct})),backgroundColor:(FC[f]||C.cy)+"99",pointRadius:4}));
+  mk("c-dkm",{type:"scatter",data:{datasets:dsK},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{...LG,position:"bottom"}},scales:{x:{...SC.x,title:{display:true,text:"Km Driven",color:TC}},y:{...SC.y,title:{display:true,text:"Depreciation %",color:TC}}}}});
+  function dbar(id,key,colors){const m=grp(FD,key,x=>x.dpct),lb=Object.keys(m),vl=lb.map(k=>+avg(m[k]).toFixed(2));mk(id,{type:"bar",data:{labels:lb,datasets:[{label:"Avg Depr %",data:vl,backgroundColor:colors,borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.raw}%`}}},scales:{...SC,y:{...SC.y,title:{display:true,text:"Depreciation %",color:TC}}}}})}
+  dbar("c-df","fu",[C.bl,C.am,C.gr]);dbar("c-dtr","tr",[C.pu,C.cy]);dbar("c-dsl","se",[C.bl,C.gr]);
+  const ao=["0–3 yrs","4–6 yrs","7–10 yrs","10+ yrs"],bag=grp(FD,"ag",x=>x.dpct),al=ao.filter(k=>bag[k]);
+  mk("c-dag",{type:"bar",data:{labels:al,datasets:[{label:"Avg Depr %",data:al.map(k=>+avg(bag[k]).toFixed(2)),backgroundColor:[C.gr,C.bl,C.am,C.re],borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.raw}%`}}},scales:{...SC,y:{...SC.y,title:{display:true,text:"Depreciation %",color:TC}}}}})
+}
+
+// CAR INSIGHTS
+function doCar(){
+  const cm={};FD.forEach(d=>{cm[d.nm]=(cm[d.nm]||0)+1});
+  const tp=Object.entries(cm).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  hbar("c-tc",tp.map(x=>x[0]),tp.map(x=>x[1]),"Listings","Number of Listings",CAT);
+  const pm=grp(FD,"nm",x=>x.sp);
+  const tpr=Object.entries(pm).filter(([k,v])=>v.length>=2).map(([k,v])=>[k,+avg(v).toFixed(2)]).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  hbar("c-tp",tpr.map(x=>x[0]),tpr.map(x=>x[1]),"₹L","Avg Selling Price (₹L)",CAT);
+  const dm=grp(FD,"nm",x=>x.dpct);
+  const tr=Object.entries(dm).filter(([k,v])=>v.length>=2).map(([k,v])=>[k,+avg(v).toFixed(1)]).sort((a,b)=>a[1]-b[1]).slice(0,10);
+  hbar("c-tret",tr.map(x=>x[0]),tr.map(x=>x[1]),"Depr %","Avg Depreciation % (lower = better)",[C.gr])
+}
+function hbar(id,lb,dt,su,yl,colors){
+  const bgs=colors.length>1?lb.map((_,i)=>colors[i%colors.length]+"cc"):dt.map(()=>colors[0]+"cc");
+  mk(id,{type:"bar",data:{labels:lb,datasets:[{label:yl,data:dt,backgroundColor:bgs,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,indexAxis:"y",plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.raw} ${su}`}}},scales:{x:{...SC.x,title:{display:true,text:yl,color:TC}},y:{...SC.y,ticks:{...SC.y.ticks,font:{size:10}}}}}})
+}
+
+// CAR SEARCH
+document.getElementById("car-search").addEventListener("input",function(){
+  const q=this.value.trim().toLowerCase(),div=document.getElementById("car-detail");
+  if(!q){div.style.display="none";return}
+  const m=FD.filter(d=>d.nm.toLowerCase().includes(q));
+  if(!m.length){div.style.display="block";div.innerHTML="<p style='color:var(--tm);font-size:13px'>No matches in current filter.</p>";return}
+  const names=[...new Set(m.map(d=>d.nm))].slice(0,3);
+  div.style.display="block";
+  div.innerHTML=names.map(n=>{
+    const cars=m.filter(d=>d.nm===n);
+    return `<div style="margin-bottom:14px"><div style="font-size:14px;font-weight:700;text-transform:capitalize;margin-bottom:6px">${n} <span style="font-size:11px;color:var(--tm);font-weight:400">${cars.length} listing${cars.length>1?"s":""}</span></div><div class="cdg"><div class="cdi"><div class="dl">Avg Sell Price</div><div class="dv" style="color:var(--gr)">${fmt(avg(cars.map(x=>x.sp)))}</div></div><div class="cdi"><div class="dl">Avg Present Price</div><div class="dv">${fmt(avg(cars.map(x=>x.pp)))}</div></div><div class="cdi"><div class="dl">Avg Kms</div><div class="dv">${Math.round(avg(cars.map(x=>x.km))).toLocaleString("en-IN")}</div></div><div class="cdi"><div class="dl">Avg Age</div><div class="dv">${avg(cars.map(x=>x.age)).toFixed(1)} yrs</div></div><div class="cdi"><div class="dl">Avg Depr %</div><div class="dv" style="color:var(--re)">${avg(cars.map(x=>x.dpct)).toFixed(1)}%</div></div><div class="cdi"><div class="dl">Fuel</div><div class="dv">${[...new Set(cars.map(x=>x.fu))].join(" / ")}</div></div></div></div>`
+  }).join("")
+});
+
+// DATA QUALITY
+function buildDQ(){
+  function qnt(a,p){const s=[...a].sort((a,b)=>a-b);const i=p*(s.length-1),lo=Math.floor(i),hi=Math.ceil(i);return s[lo]+(s[hi]-s[lo])*(i-lo)}
+  const cols=["sp","pp","km","age","ow"],colN=["Selling_Price","Present_Price","Kms_Driven","Age","Owner"];
+  const stats=["count","mean","std","min","25%","50%","75%","max"];
+  const S={};
+  cols.forEach(c=>{const v=DATA.map(d=>d[c]).filter(x=>!isNaN(x));const n=v.length,m=avg(v),sd=Math.sqrt(v.reduce((a,x)=>a+(x-m)**2,0)/n);S[c]={count:n,mean:m,std:sd,min:Math.min(...v),"25%":qnt(v,.25),"50%":qnt(v,.5),"75%":qnt(v,.75),max:Math.max(...v)}});
+  let h=`<thead><tr><th>Stat</th>${colN.map(c=>`<th>${c}</th>`).join("")}</tr></thead><tbody>`;
+  stats.forEach(s=>{h+=`<tr><td><strong>${s}</strong></td>${cols.map(c=>`<td>${S[c][s].toFixed(3)}</td>`).join("")}</tr>`});
+  document.getElementById("sum-tbl").innerHTML=h+"</tbody>";
+  const prices=DATA.map(d=>d.sp).sort((a,b)=>a-b);
+  const q1=qnt(prices,.25),q3=qnt(prices,.75),iqr=q3-q1,lo=q1-1.5*iqr,hi=q3+1.5*iqr;
+  const out=DATA.filter(d=>d.sp<lo||d.sp>hi);
+  document.getElementById("outlier-sec").innerHTML=`<table class="dt"><tr><th>Metric</th><th>Value</th></tr><tr><td>Q1 (25%)</td><td>₹${q1.toFixed(2)}L</td></tr><tr><td>Q3 (75%)</td><td>₹${q3.toFixed(2)}L</td></tr><tr><td>IQR</td><td>₹${iqr.toFixed(2)}L</td></tr><tr><td>Lower Fence</td><td>₹${lo.toFixed(2)}L</td></tr><tr><td>Upper Fence</td><td>₹${hi.toFixed(2)}L</td></tr><tr><td>Outliers Found</td><td><span class="badge ba">${out.length}</span></td></tr><tr><td>Examples</td><td style="font-size:11px">${out.slice(0,5).map(d=>`${d.nm} @ ₹${d.sp}L`).join(", ")}</td></tr></table>`
+}
+
+// TABS
+document.querySelectorAll(".tb").forEach(btn=>{btn.addEventListener("click",function(){
+  document.querySelectorAll(".tb").forEach(b=>b.classList.remove("active"));
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  this.classList.add("active");
+  document.getElementById("page-"+this.dataset.tab).classList.add("active");
+  setTimeout(()=>Object.values(CH).forEach(c=>c&&c.resize&&c.resize()),60)
+})});
+
+// FILTER LISTENERS
+document.querySelectorAll("#sidebar input").forEach(el=>el.addEventListener("change",update));
+document.getElementById("ym").addEventListener("input",function(){const mx=+document.getElementById("yx").value;if(+this.value>mx)this.value=mx;document.getElementById("ymv").textContent=this.value;update()});
+document.getElementById("yx").addEventListener("input",function(){const mn=+document.getElementById("ym").value;if(+this.value<mn)this.value=mn;document.getElementById("yxv").textContent=this.value;update()});
+document.getElementById("reset-btn").addEventListener("click",()=>{
+  document.querySelectorAll("#sidebar input[type=checkbox]").forEach(cb=>cb.checked=true);
+  document.getElementById("ym").value=2003;document.getElementById("yx").value=2018;
+  document.getElementById("ymv").textContent="2003";document.getElementById("yxv").textContent="2018";
+  update()
+});
+
+buildDQ();
+update();
+</script>
+</body>
+</html>
