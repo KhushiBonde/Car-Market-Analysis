@@ -100,49 +100,7 @@ Car-Market-Analysis/
 └── index.html             # Static HTML dashboard (standalone)
 ```
 
----
 
-## 🚀 Installation & Setup
-
-### Prerequisites
-
-- Python 3.10 or higher
-- pip
-
-### Install Dependencies
-
-```bash
-pip install -r requirements.txt
-```
-
-### Run Locally
-
-```bash
-streamlit run dashboard.py
-```
-
-The dashboard will open at **http://localhost:8501**.
-
----
-
-## ☁️ Deployment (Streamlit Community Cloud)
-
-1. Push this project to a **GitHub repository**
-2. Go to [share.streamlit.io](https://share.streamlit.io/)
-3. Connect your GitHub account
-4. Select the repository and set:
-   - **Main file path:** `dashboard.py`
-   - **Python version:** 3.10+
-5. Click **Deploy**
-
-### Required Files for Deployment
-
-- `dashboard.py`
-- `car_dekho_data.csv`
-- `requirements.txt`
-- `.streamlit/config.toml`
-
----
 
 ## 🔍 Key Analysis & Insights
 
@@ -179,4 +137,4 @@ This project is for educational and portfolio purposes.
 
 ---
 
-*Built with ❤️ using Streamlit & Plotly*
+
